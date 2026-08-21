@@ -57,8 +57,8 @@ which app tab to open based on the window you were just in.
 
 | Key | Action |
 |---|---|
-| `←`/`h` / `→`/`l` / `Tab` | Switch tabs |
-| `↑`/`k` / `↓`/`j` | Move selection |
+| `h`/`←` / `l`/`→` / `Tab` | Switch tabs |
+| `j`/`↓` / `k`/`↑` | Move selection |
 | `gg` / `G` | Jump to top / bottom of the list |
 | `/` | Search / filter |
 | `Esc` | Cancel search |
