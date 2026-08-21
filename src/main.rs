@@ -27,6 +27,7 @@ struct App {
     nvim_rx: Option<Receiver<Tab>>,
     nvim_idx: usize,
     spinner_frame: usize,
+    pending_g: bool,
 }
 
 fn main() -> Result<()> {
@@ -61,6 +62,7 @@ fn main() -> Result<()> {
         nvim_rx,
         nvim_idx,
         spinner_frame: 0,
+        pending_g: false,
     };
 
     enable_raw_mode()?;
@@ -99,6 +101,15 @@ fn move_selection(app: &mut App, delta: isize) {
     let current = app.table.selected().unwrap_or(0) as isize;
     let next = (current + delta).rem_euclid(len as isize) as usize;
     app.table.select(Some(next));
+}
+
+fn jump_to(app: &mut App, index: usize) {
+    let len = row_count(app);
+    if len == 0 {
+        app.table.select(None);
+        return;
+    }
+    app.table.select(Some(index.min(len - 1)));
 }
 
 fn run<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut App) -> Result<()> {
@@ -162,6 +173,9 @@ fn run<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut App) 
                 continue;
             }
 
+            let was_pending_g = app.pending_g;
+            app.pending_g = false;
+
             match key.code {
                 KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
                 KeyCode::Tab | KeyCode::Right | KeyCode::Char('l') => {
@@ -174,6 +188,14 @@ fn run<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut App) 
                 }
                 KeyCode::Down | KeyCode::Char('j') => move_selection(app, 1),
                 KeyCode::Up | KeyCode::Char('k') => move_selection(app, -1),
+                KeyCode::Char('g') => {
+                    if was_pending_g {
+                        jump_to(app, 0);
+                    } else {
+                        app.pending_g = true;
+                    }
+                }
+                KeyCode::Char('G') => jump_to(app, row_count(app).saturating_sub(1)),
                 KeyCode::Char('/') => {
                     app.searching = true;
                     app.search.clear();

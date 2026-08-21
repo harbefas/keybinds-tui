@@ -135,7 +135,7 @@ fn draw_footer(f: &mut Frame, area: Rect, search: &str, searching: bool, t: &The
         );
         f.render_widget(p, area);
     } else {
-        let hint = Paragraph::new(" ←/→ switch tab · ↑/↓ navigate · / search · q quit ")
+        let hint = Paragraph::new(" ←/→ switch tab · ↑/↓ navigate · gg/G top/bottom · / search · q quit ")
             .style(Style::default().fg(t.text_4).bg(t.bg));
         f.render_widget(hint, area);
     }
