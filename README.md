@@ -6,6 +6,7 @@ focus, free-text search across all of them.
 
 ![Rust](https://img.shields.io/badge/rust-2021-orange)
 [![CI](https://github.com/harbefas/keybinds-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/harbefas/keybinds-tui/actions/workflows/ci.yml)
+[![crates.io](https://img.shields.io/crates/v/keybinds-tui.svg)](https://crates.io/crates/keybinds-tui)
 
 ![screenshot](assets/screenshot.png)
 
@@ -45,13 +46,19 @@ that already knows what you were doing when you opened it.
 them for a live source in `src/sources/` if the app you use has one and you
 want it parsed instead.
 
-## Build
+## Install
+
+```sh
+cargo install keybinds-tui
+```
+
+Or build from source:
 
 ```sh
 cargo build --release
 ```
 
-Binary lands at `target/release/kb`.
+Binary lands at `target/release/kb` (the crate is `keybinds-tui`, the binary is `kb`).
 
 ## Usage
 
