@@ -1,3 +1,4 @@
+mod cli;
 mod config;
 mod focus;
 mod model;
@@ -33,6 +34,8 @@ struct App {
 }
 
 fn main() -> Result<()> {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+
     let mut tabs = vec![
         sources::hypr::load(),
         sources::herdr::load(),
@@ -45,7 +48,19 @@ fn main() -> Result<()> {
         sources::nvim::loading_tab(),
     ];
     let nvim_idx = tabs.len() - 1;
-    let nvim_rx = Some(sources::nvim::spawn());
+    let nvim_rx = sources::nvim::spawn();
+
+    if cli::is_non_interactive(&args) {
+        // No UI to keep responsive here, so just block for the nvim dump
+        // instead of polling it in the background.
+        if let Ok(tab) = nvim_rx.recv() {
+            tabs[nvim_idx] = tab;
+        }
+        tabs.extend(config::load_user_tabs());
+        return cli::run(&args, &tabs);
+    }
+
+    let nvim_rx = Some(nvim_rx);
     tabs.extend(config::load_user_tabs());
 
     let guessed = focus::guess_app(&tabs);
@@ -87,8 +102,30 @@ fn main() -> Result<()> {
     result
 }
 
+/// The part of `app.search` actually used to filter rows — with a leading
+/// `@tab` tab-selector token (see `sync_at_tab`) stripped off.
+fn filter_text(app: &App) -> &str {
+    model::split_at_tab(&app.search).1
+}
+
 fn row_count(app: &App) -> usize {
-    app.tabs[app.active].filtered(&app.search).len()
+    app.tabs[app.active].filtered(filter_text(app)).len()
+}
+
+/// While searching, `@token` at the start jumps to the first tab whose name
+/// or alias starts with that token, so e.g. typing "@vim scroll" hops to
+/// Neovim/Tridactyl and filters for "scroll" within it.
+fn sync_at_tab(app: &mut App) {
+    let Some(token) = model::split_at_tab(&app.search).0 else {
+        return;
+    };
+    let token = token.to_lowercase();
+    if let Some(idx) = app.tabs.iter().position(|t| {
+        t.app.to_lowercase().starts_with(&token)
+            || t.aliases.iter().any(|a| a.to_lowercase().starts_with(&token))
+    }) {
+        app.active = idx;
+    }
 }
 
 fn reset_selection(app: &mut App) {
@@ -176,10 +213,12 @@ fn run<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut App) 
                     KeyCode::Enter => app.searching = false,
                     KeyCode::Backspace => {
                         app.search.pop();
+                        sync_at_tab(app);
                         reset_selection(app);
                     }
                     KeyCode::Char(c) => {
                         app.search.push(c);
+                        sync_at_tab(app);
                         reset_selection(app);
                     }
                     _ => {}

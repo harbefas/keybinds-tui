@@ -53,6 +53,7 @@ pub fn load() -> Tab {
     Tab {
         app: "Herdr".into(),
         window_class: &[],
+        aliases: &["tmux", "multiplexer"],
         sections: sections
             .into_iter()
             .map(|(name, binds)| Section { name, binds })

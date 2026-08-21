@@ -29,6 +29,7 @@ pub fn loading_tab() -> Tab {
     Tab {
         app: "Neovim".into(),
         window_class: &[],
+        aliases: &["vim", "editor"],
         sections: vec![],
     }
 }
@@ -51,11 +52,13 @@ fn load() -> Tab {
         Ok(sections) => Tab {
             app: "Neovim".into(),
             window_class: &[],
+            aliases: &["vim", "editor"],
             sections,
         },
         Err(_) => Tab {
             app: "Neovim".into(),
             window_class: &[],
+            aliases: &["vim", "editor"],
             sections: vec![Section {
                 name: "error".into(),
                 binds: vec![Bind {
@@ -67,7 +70,36 @@ fn load() -> Tab {
     }
 }
 
+/// How long a cached dump stays valid. Neovim's own keymaps rarely change
+/// between kb invocations, so caching turns the ~4s headless startup into an
+/// instant load for anything short of a config edit + reopen within the TTL.
+const CACHE_TTL_SECS: u64 = 300;
+
+fn cache_path() -> std::path::PathBuf {
+    std::env::temp_dir().join("kb-nvim-cache.json")
+}
+
+fn read_cache() -> Option<Vec<Section>> {
+    let path = cache_path();
+    let modified = std::fs::metadata(&path).ok()?.modified().ok()?;
+    let age = std::time::SystemTime::now().duration_since(modified).ok()?;
+    if age.as_secs() > CACHE_TTL_SECS {
+        return None;
+    }
+    serde_json::from_str(&std::fs::read_to_string(&path).ok()?).ok()
+}
+
+fn write_cache(sections: &[Section]) {
+    if let Ok(json) = serde_json::to_string(sections) {
+        let _ = std::fs::write(cache_path(), json);
+    }
+}
+
 fn dump() -> anyhow::Result<Vec<Section>> {
+    if let Some(cached) = read_cache() {
+        return Ok(cached);
+    }
+
     let tmp = std::env::temp_dir().join(format!("kb-nvim-dump-{}.json", std::process::id()));
     // `timeout` guards against lazy.nvim plugins that hang headless startup
     // (update checks, notifications waiting on a UI that never attaches).
@@ -116,8 +148,10 @@ fn dump() -> anyhow::Result<Vec<Section>> {
             });
     }
 
-    Ok(by_mode
+    let sections: Vec<Section> = by_mode
         .into_iter()
         .map(|(name, binds)| Section { name, binds })
-        .collect())
+        .collect();
+    write_cache(&sections);
+    Ok(sections)
 }

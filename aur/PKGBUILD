@@ -1,0 +1,25 @@
+# Maintainer: Nicholas Velten <nikvelten@gmail.com>
+pkgname=keybinds-tui
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="A terminal UI for looking up keybindings across your tools, auto-opening on the tab matching the app you were just focused on"
+arch=('x86_64' 'aarch64')
+url="https://github.com/harbefas/keybinds-tui"
+license=('MIT')
+depends=('gcc-libs')
+makedepends=('cargo')
+source=("$pkgname-$pkgver.crate::https://static.crates.io/crates/$pkgname/$pkgname-$pkgver.crate")
+sha256sums=('3107941681a569b72fc3525e9e3e044fb6692d08444d710d78077c08a1b541ce')
+
+build() {
+    cd "$pkgname-$pkgver"
+    export RUSTUP_TOOLCHAIN=stable
+    export CARGO_TARGET_DIR=target
+    cargo build --release --locked
+}
+
+package() {
+    cd "$pkgname-$pkgver"
+    install -Dm755 "target/release/kb" "$pkgdir/usr/bin/kb"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

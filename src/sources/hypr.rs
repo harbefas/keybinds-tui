@@ -44,6 +44,7 @@ pub fn load() -> Tab {
     Tab {
         app: "Hyprland".into(),
         window_class: &[],
+        aliases: &["compositor", "wm", "wayland"],
         sections,
     }
 }

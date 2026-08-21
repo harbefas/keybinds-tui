@@ -58,5 +58,10 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab::from_raw("Tridactyl", &["librewolf", "firefox"], raw)
+    Tab::from_raw(
+        "Tridactyl",
+        &["librewolf", "firefox"],
+        &["vim", "browser"],
+        raw,
+    )
 }

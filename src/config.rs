@@ -8,6 +8,7 @@ use serde::Deserialize;
 /// [[tab]]
 /// app = "MyApp"
 /// window_class = ["myapp"]
+/// aliases = ["alt-name-people-search-for"]
 ///
 /// [[tab.section]]
 /// name = "General"
@@ -27,6 +28,8 @@ struct FileTab {
     app: String,
     #[serde(default)]
     window_class: Vec<String>,
+    #[serde(default)]
+    aliases: Vec<String>,
     #[serde(default, rename = "section")]
     sections: Vec<FileSection>,
 }
@@ -62,6 +65,13 @@ pub fn load_user_tabs() -> Vec<Tab> {
             // startup and lives for the process, so leaking it is fine.
             window_class: Box::leak(
                 t.window_class
+                    .into_iter()
+                    .map(|s| -> &'static str { s.leak() })
+                    .collect::<Vec<_>>()
+                    .into_boxed_slice(),
+            ),
+            aliases: Box::leak(
+                t.aliases
                     .into_iter()
                     .map(|s| -> &'static str { s.leak() })
                     .collect::<Vec<_>>()

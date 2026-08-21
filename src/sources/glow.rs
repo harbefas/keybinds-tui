@@ -28,5 +28,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab::from_raw("Glow", &["glow"], raw)
+    Tab::from_raw("Glow", &["glow"], &["markdown", "md"], raw)
 }

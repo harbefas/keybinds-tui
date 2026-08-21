@@ -67,5 +67,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab::from_raw("Lazygit", &["lazygit"], raw)
+    Tab::from_raw("Lazygit", &["lazygit"], &["git"], raw)
 }

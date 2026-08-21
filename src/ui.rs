@@ -84,7 +84,7 @@ fn draw_binds(
         return;
     }
 
-    let filtered = tab.filtered(search);
+    let filtered = tab.filtered(crate::model::split_at_tab(search).1);
     let rows: Vec<Row> = filtered
         .iter()
         .map(|(section, bind)| {

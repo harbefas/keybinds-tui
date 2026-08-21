@@ -49,5 +49,10 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab::from_raw("Spotify", &["spotify_player", "spotify-player"], raw)
+    Tab::from_raw(
+        "Spotify",
+        &["spotify_player", "spotify-player"],
+        &["music"],
+        raw,
+    )
 }

@@ -22,8 +22,15 @@ that already knows what you were doing when you opened it.
 - **Auto-focus detection** — guesses which app you were just in (via
   Hyprland window class + process tree) and opens directly on that tab
 - **Search** — `/` filters keys and actions in the active tab; multiple
-  words match in any order, so "tab next" and "next tab" both find a row
-  whose action is "Next tab"
+  words match in any order and fuzzily (like fzf), so "tab next", "next
+  tab", and "nxt tb" all find a row whose action is "Next tab"
+- **Aliases and `@tab` jump** — tabs carry extra search terms beyond their
+  name (Tridactyl also answers to "vim", "browser"), and typing `@name` at
+  the start of a search jumps straight to that tab (`@vim scroll` hops to
+  Neovim/Tridactyl and filters for "scroll")
+- **Non-interactive mode** — `kb --list`/`--json` prints every bind for
+  scripting or feeding an external picker (rofi/walker/fzf), `kb
+  --conflicts` flags keys reused across apps
 - **Live sourcing where possible** — some tabs are parsed straight from the
   app's real config/state instead of a hand-maintained list (see below)
 - **Light/dark theme**, auto-switched by time of day
@@ -94,6 +101,30 @@ two values through the env vars above.
 Everything else (window-class matching, process-tree walking for terminal
 apps) works standalone with no extra setup.
 
+### Non-interactive / picker mode
+
+```sh
+kb --list        # "App | Section | Keys | Action", one per line
+kb --json        # same rows as JSON
+kb --conflicts   # keys reused across more than one app (informational)
+```
+
+`--list` is meant for piping into whatever fuzzy picker you already have,
+instead of opening the TUI:
+
+```sh
+kb --list | rofi -dmenu -p keybinds
+kb --list | walker --dmenu
+kb --list | fzf
+```
+
+### Neovim dump cache
+
+The headless `nvim` dump takes a few seconds, so its result is cached at
+`$TMPDIR/kb-nvim-cache.json` for 5 minutes — reopening `kb` shortly after is
+instant. Delete that file (or just wait out the TTL) if you edited your
+Neovim config and want a fresh dump sooner.
+
 ## Adding an app
 
 **Without forking**, drop a `~/.config/kb/tabs.toml` and it's merged in at
@@ -103,6 +134,7 @@ startup:
 [[tab]]
 app = "MyApp"
 window_class = ["myapp"]
+aliases = ["alt-name-people-search-for"]
 
 [[tab.section]]
 name = "General"

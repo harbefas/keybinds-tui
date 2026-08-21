@@ -1,1 +1,6 @@
 /target
+aur/src/
+aur/pkg/
+aur/*.pkg.tar.*
+aur/*.log
+aur/*.crate

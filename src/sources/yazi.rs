@@ -63,5 +63,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab::from_raw("Yazi", &["yazi"], raw)
+    Tab::from_raw("Yazi", &["yazi"], &["files", "explorer"], raw)
 }

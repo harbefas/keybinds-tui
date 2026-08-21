@@ -38,5 +38,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab::from_raw("Tuicr", &["tuicr"], raw)
+    Tab::from_raw("Tuicr", &["tuicr"], &["review", "pr", "code review"], raw)
 }
