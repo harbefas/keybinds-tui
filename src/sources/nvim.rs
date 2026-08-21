@@ -57,10 +57,10 @@ fn load() -> Tab {
             app: "Neovim".into(),
             window_class: &[],
             sections: vec![Section {
-                name: "erro".into(),
+                name: "error".into(),
                 binds: vec![Bind {
                     keys: "-".into(),
-                    action: "falha ao rodar `nvim --headless` (binário no PATH?)".into(),
+                    action: "failed to run `nvim --headless` (binary in PATH?)".into(),
                 }],
             }],
         },

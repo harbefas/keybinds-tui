@@ -74,7 +74,7 @@ fn draw_binds(
 
     if tab.app == "Neovim" && tab.sections.is_empty() {
         let msg = Paragraph::new(format!(
-            "{} carregando keymaps do nvim (headless)...",
+            "{} loading nvim keymaps (headless)...",
             spinner.unwrap_or("")
         ))
         .style(Style::default().fg(t.text_3).bg(t.bg))
@@ -99,7 +99,7 @@ fn draw_binds(
         .collect();
 
     if rows.is_empty() {
-        let msg = Paragraph::new("nada encontrado")
+        let msg = Paragraph::new("no results")
             .style(Style::default().fg(t.text_3).bg(t.bg))
             .block(block);
         f.render_widget(msg, area);
@@ -114,7 +114,7 @@ fn draw_binds(
             Constraint::Percentage(55),
         ],
     )
-    .header(Row::new(vec!["Seção", "Tecla", "Ação"]).style(Style::default().fg(t.text_2).add_modifier(Modifier::BOLD)))
+    .header(Row::new(vec!["Section", "Key", "Action"]).style(Style::default().fg(t.text_2).add_modifier(Modifier::BOLD)))
     .row_highlight_style(Style::default().bg(t.surface).add_modifier(Modifier::BOLD))
     .highlight_symbol("▍ ")
     .style(Style::default().bg(t.bg))
@@ -125,7 +125,7 @@ fn draw_binds(
 
 fn draw_footer(f: &mut Frame, area: Rect, search: &str, searching: bool, t: &Theme) {
     if searching || !search.is_empty() {
-        let label = if searching { "buscar> " } else { "filtro: " };
+        let label = if searching { "search> " } else { "filter: " };
         let text = format!("{label}{search}");
         let p = Paragraph::new(text).style(Style::default().fg(t.accent_text).bg(t.bg)).block(
             Block::default()
@@ -135,7 +135,7 @@ fn draw_footer(f: &mut Frame, area: Rect, search: &str, searching: bool, t: &The
         );
         f.render_widget(p, area);
     } else {
-        let hint = Paragraph::new(" ←/→ trocar aba · ↑/↓ navegar · / buscar · q sair ")
+        let hint = Paragraph::new(" ←/→ switch tab · ↑/↓ navigate · / search · q quit ")
             .style(Style::default().fg(t.text_4).bg(t.bg));
         f.render_widget(hint, area);
     }

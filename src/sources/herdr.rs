@@ -6,29 +6,29 @@ use std::fs;
 /// from that source once. What we *can* read live is ~/.config/herdr/config.toml's
 /// [keys] table, which overrides individual defaults — those are merged in.
 const DEFAULTS: &[(&str, &str, &str)] = &[
-    ("Workspaces", "Prefix + Down", "Próximo workspace"),
-    ("Workspaces", "Prefix + Up", "Workspace anterior"),
+    ("Workspaces", "Prefix + Down", "Next workspace"),
+    ("Workspaces", "Prefix + Up", "Previous workspace"),
     ("Workspaces", "Prefix + W", "Workspace picker"),
-    ("Workspaces", "Prefix + Shift + N", "Novo workspace"),
-    ("Workspaces", "Prefix + Shift + W", "Renomear workspace"),
-    ("Workspaces", "Prefix + Shift + D", "Fechar workspace"),
-    ("Tabs", "Prefix + Right", "Próxima tab"),
-    ("Tabs", "Prefix + Left", "Tab anterior"),
-    ("Tabs", "Prefix + C", "Nova tab"),
-    ("Tabs", "Prefix + Shift + T", "Renomear tab"),
-    ("Tabs", "Prefix + Shift + X", "Fechar tab"),
-    ("Tabs", "Prefix + 1..9", "Ir para tab N"),
-    ("Panes", "Prefix + V", "Split vertical"),
-    ("Panes", "Prefix + -", "Split horizontal"),
-    ("Panes", "Prefix + X", "Fechar pane"),
+    ("Workspaces", "Prefix + Shift + N", "New workspace"),
+    ("Workspaces", "Prefix + Shift + W", "Rename workspace"),
+    ("Workspaces", "Prefix + Shift + D", "Close workspace"),
+    ("Tabs", "Prefix + Right", "Next tab"),
+    ("Tabs", "Prefix + Left", "Previous tab"),
+    ("Tabs", "Prefix + C", "New tab"),
+    ("Tabs", "Prefix + Shift + T", "Rename tab"),
+    ("Tabs", "Prefix + Shift + X", "Close tab"),
+    ("Tabs", "Prefix + 1..9", "Go to tab N"),
+    ("Panes", "Prefix + V", "Vertical split"),
+    ("Panes", "Prefix + -", "Horizontal split"),
+    ("Panes", "Prefix + X", "Close pane"),
     ("Panes", "Prefix + Z", "Zoom (fullscreen) pane"),
-    ("Panes", "Prefix + H/J/K/L", "Foco pane esq/baixo/cima/dir"),
-    ("Panes", "Prefix + Tab", "Cyclar panes"),
-    ("Panes", "Prefix + R", "Modo resize"),
+    ("Panes", "Prefix + H/J/K/L", "Focus pane left/down/up/right"),
+    ("Panes", "Prefix + Tab", "Cycle panes"),
+    ("Panes", "Prefix + R", "Resize mode"),
     ("Misc", "Prefix + ?", "Help"),
     ("Misc", "Prefix + B", "Toggle sidebar"),
-    ("Misc", "Prefix + G", "Goto (busca)"),
-    ("Misc", "Prefix + E", "Editar scrollback"),
+    ("Misc", "Prefix + G", "Goto (search)"),
+    ("Misc", "Prefix + E", "Edit scrollback"),
 ];
 
 pub fn load() -> Tab {
@@ -86,7 +86,18 @@ fn read_overrides() -> std::collections::HashMap<String, String> {
         }
         if let Some((k, v)) = line.split_once('=') {
             let key = k.trim().to_string();
-            let val = v.trim().trim_matches('"').replace("prefix", "Prefix").replace('+', " + ");
+            // Values are either a plain string ("prefix+q") or a TOML array
+            // of alternates (["prefix+h", "alt+enter"]) — quoted substrings
+            // cover both without a real TOML parser.
+            let quoted: Vec<&str> = v.trim().split('"').skip(1).step_by(2).collect();
+            if quoted.is_empty() {
+                continue;
+            }
+            let val = quoted
+                .iter()
+                .map(|s| s.replace("prefix", "Prefix").replace('+', " + "))
+                .collect::<Vec<_>>()
+                .join(" / ");
             map.insert(key, val);
         }
     }

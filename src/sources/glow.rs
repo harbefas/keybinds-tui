@@ -5,24 +5,24 @@ use crate::model::{Bind, Section, Tab};
 pub fn load() -> Tab {
     let raw: &[(&str, &[(&str, &str)])] = &[
         (
-            "Navegação (file finder)",
+            "Navigation (file finder)",
             &[
-                ("j / k", "Baixo / cima"),
-                ("g g / G", "Topo / fim"),
-                ("/", "Filtrar arquivos"),
-                ("Enter", "Abrir arquivo"),
-                ("q", "Sair"),
+                ("j / k", "Down / up"),
+                ("g g / G", "Top / bottom"),
+                ("/", "Filter files"),
+                ("Enter", "Open file"),
+                ("q", "Quit"),
             ],
         ),
         (
-            "Leitura (pager)",
+            "Reading (pager)",
             &[
-                ("j / k", "Scroll linha baixo / cima"),
-                ("d / u", "Meia página baixo / cima"),
-                ("g / G", "Topo / fim do documento"),
-                ("/", "Buscar no documento"),
-                ("n / N", "Próxima / anterior ocorrência"),
-                ("esc / q", "Voltar ao file finder"),
+                ("j / k", "Scroll line down / up"),
+                ("d / u", "Half page down / up"),
+                ("g / G", "Top / bottom of document"),
+                ("/", "Search in document"),
+                ("n / N", "Next / previous match"),
+                ("esc / q", "Back to file finder"),
                 ("?", "Help"),
             ],
         ),
