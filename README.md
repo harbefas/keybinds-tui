@@ -1,8 +1,9 @@
 # kb
 
-A small terminal UI for looking up keybindings across the tools you actually
-use — one tab per app, opens on the tab matching whatever's currently in
-focus, free-text search across all of them.
+A terminal UI for looking up keybindings across the tools you actually use.
+For the apps that expose one, it reads the real config instead of storing a
+copy that can drift out of date. One tab per app, opens on the tab matching
+whatever's currently in focus, free-text search across all of them.
 
 ![Rust](https://img.shields.io/badge/rust-2021-orange)
 [![CI](https://github.com/harbefas/keybinds-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/harbefas/keybinds-tui/actions/workflows/ci.yml)
@@ -12,9 +13,12 @@ focus, free-text search across all of them.
 
 ## Why
 
-Keybindings live scattered across config files, plugin docs, and muscle
-memory. `kb` puts them in one place: a fast TUI you bind to a shortcut,
-that already knows what you were doing when you opened it.
+A hardcoded list of keybindings is a second copy of a fact the config file
+already knows, and second copies drift out of sync. The tabs that can be
+read live (Hyprland, Neovim) are, straight from the real config or a
+headless dump, never a table someone has to remember to update. The rest are
+hand-copied defaults, labeled as such in the table below rather than passed
+off as live data.
 
 ## Features
 
