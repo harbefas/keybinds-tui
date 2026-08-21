@@ -1,3 +1,4 @@
+mod config;
 mod focus;
 mod model;
 mod sources;
@@ -5,7 +6,7 @@ mod theme;
 mod ui;
 
 use anyhow::Result;
-use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode};
+use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers};
 use crossterm::execute;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
 use model::Tab;
@@ -17,6 +18,7 @@ use std::sync::mpsc::Receiver;
 use std::time::Duration;
 
 const SPINNER: &[&str] = &["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+const HALF_PAGE: isize = 10;
 
 struct App {
     tabs: Vec<Tab>,
@@ -31,7 +33,7 @@ struct App {
 }
 
 fn main() -> Result<()> {
-    let tabs = vec![
+    let mut tabs = vec![
         sources::hypr::load(),
         sources::herdr::load(),
         sources::tridactyl::load(),
@@ -44,6 +46,7 @@ fn main() -> Result<()> {
     ];
     let nvim_idx = tabs.len() - 1;
     let nvim_rx = Some(sources::nvim::spawn());
+    tabs.extend(config::load_user_tabs());
 
     let guessed = focus::guess_app(&tabs);
     let active = guessed
@@ -100,6 +103,17 @@ fn move_selection(app: &mut App, delta: isize) {
     }
     let current = app.table.selected().unwrap_or(0) as isize;
     let next = (current + delta).rem_euclid(len as isize) as usize;
+    app.table.select(Some(next));
+}
+
+fn scroll_page(app: &mut App, delta: isize) {
+    let len = row_count(app);
+    if len == 0 {
+        app.table.select(None);
+        return;
+    }
+    let current = app.table.selected().unwrap_or(0) as isize;
+    let next = (current + delta).clamp(0, len as isize - 1) as usize;
     app.table.select(Some(next));
 }
 
@@ -185,6 +199,12 @@ fn run<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut App) 
                 KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => {
                     app.active = (app.active + app.tabs.len() - 1) % app.tabs.len();
                     reset_selection(app);
+                }
+                KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    scroll_page(app, HALF_PAGE)
+                }
+                KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                    scroll_page(app, -HALF_PAGE)
                 }
                 KeyCode::Down | KeyCode::Char('j') => move_selection(app, 1),
                 KeyCode::Up | KeyCode::Char('k') => move_selection(app, -1),

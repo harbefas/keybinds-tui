@@ -1,4 +1,4 @@
-use crate::model::{Bind, Section, Tab};
+use crate::model::Tab;
 
 /// No ~/.config/yazi/keymap.toml override — defaults are compiled into the
 /// binary. Static table hand-copied from yazi's documented default keymap.
@@ -63,21 +63,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab {
-        app: "Yazi".into(),
-        window_class: &["yazi"],
-        sections: raw
-            .iter()
-            .map(|(name, binds)| Section {
-                name: name.to_string(),
-                binds: binds
-                    .iter()
-                    .map(|(k, a)| Bind {
-                        keys: k.to_string(),
-                        action: a.to_string(),
-                    })
-                    .collect(),
-            })
-            .collect(),
-    }
+    Tab::from_raw("Yazi", &["yazi"], raw)
 }

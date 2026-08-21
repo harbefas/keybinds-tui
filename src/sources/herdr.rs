@@ -64,15 +64,18 @@ fn action_id(action: &str) -> String {
     action.to_lowercase().replace(' ', "_")
 }
 
-/// Very small TOML `[keys]` table reader — just `key = "value"` lines, no
-/// full parser needed for this one section.
 fn read_overrides() -> std::collections::HashMap<String, String> {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/root".into());
     let path = std::path::PathBuf::from(home).join(".config/herdr/config.toml");
     let Ok(content) = fs::read_to_string(path) else {
         return Default::default();
     };
+    parse_keys_section(&content)
+}
 
+/// Very small TOML `[keys]` table reader — just `key = "value"` lines, no
+/// full parser needed for this one section.
+fn parse_keys_section(content: &str) -> std::collections::HashMap<String, String> {
     let mut in_keys = false;
     let mut map = std::collections::HashMap::new();
     for line in content.lines() {
@@ -102,4 +105,32 @@ fn read_overrides() -> std::collections::HashMap<String, String> {
         }
     }
     map
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_plain_string_value() {
+        let map = parse_keys_section("[keys]\nprefix = \"ctrl+space\"\n");
+        assert_eq!(map.get("prefix").unwrap(), "ctrl + space");
+    }
+
+    #[test]
+    fn parses_array_of_alternates() {
+        let map = parse_keys_section(
+            "[keys]\nsplit_vertical = [\"prefix+v\", \"alt+shift+enter\"]\n",
+        );
+        assert_eq!(
+            map.get("split_vertical").unwrap(),
+            "Prefix + v / alt + shift + enter"
+        );
+    }
+
+    #[test]
+    fn ignores_keys_outside_the_keys_section() {
+        let map = parse_keys_section("[other]\nprefix = \"ctrl+space\"\n");
+        assert!(map.is_empty());
+    }
 }

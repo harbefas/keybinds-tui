@@ -1,4 +1,4 @@
-use crate::model::{Bind, Section, Tab};
+use crate::model::Tab;
 
 /// No local keymap override under ~/.config/spotify-player (only app.toml,
 /// no keymap.toml) — static table hand-copied from spotify_player's
@@ -49,21 +49,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab {
-        app: "Spotify".into(),
-        window_class: &["spotify_player", "spotify-player"],
-        sections: raw
-            .iter()
-            .map(|(name, binds)| Section {
-                name: name.to_string(),
-                binds: binds
-                    .iter()
-                    .map(|(k, a)| Bind {
-                        keys: k.to_string(),
-                        action: a.to_string(),
-                    })
-                    .collect(),
-            })
-            .collect(),
-    }
+    Tab::from_raw("Spotify", &["spotify_player", "spotify-player"], raw)
 }

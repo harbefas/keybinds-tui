@@ -1,4 +1,4 @@
-use crate::model::{Bind, Section, Tab};
+use crate::model::Tab;
 
 /// No `keybinding:` override block in ~/.config/lazygit/config.yml — static
 /// table hand-copied from lazygit's documented default keybindings.
@@ -67,21 +67,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab {
-        app: "Lazygit".into(),
-        window_class: &["lazygit"],
-        sections: raw
-            .iter()
-            .map(|(name, binds)| Section {
-                name: name.to_string(),
-                binds: binds
-                    .iter()
-                    .map(|(k, a)| Bind {
-                        keys: k.to_string(),
-                        action: a.to_string(),
-                    })
-                    .collect(),
-            })
-            .collect(),
-    }
+    Tab::from_raw("Lazygit", &["lazygit"], raw)
 }

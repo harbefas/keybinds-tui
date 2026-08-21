@@ -1,4 +1,4 @@
-use crate::model::{Bind, Section, Tab};
+use crate::model::Tab;
 
 /// No local .tridactylrc — config lives in browser sync storage (`:set`
 /// commands run inside LibreWolf), nothing to read from disk. Static table
@@ -58,21 +58,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab {
-        app: "Tridactyl".into(),
-        window_class: &["librewolf", "firefox"],
-        sections: raw
-            .iter()
-            .map(|(name, binds)| Section {
-                name: name.to_string(),
-                binds: binds
-                    .iter()
-                    .map(|(k, a)| Bind {
-                        keys: k.to_string(),
-                        action: a.to_string(),
-                    })
-                    .collect(),
-            })
-            .collect(),
-    }
+    Tab::from_raw("Tridactyl", &["librewolf", "firefox"], raw)
 }

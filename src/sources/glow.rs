@@ -1,4 +1,4 @@
-use crate::model::{Bind, Section, Tab};
+use crate::model::Tab;
 
 /// glow's TUI mode has no configurable keymap in glow.yml — static table
 /// hand-copied from its documented default keybindings.
@@ -28,21 +28,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab {
-        app: "Glow".into(),
-        window_class: &["glow"],
-        sections: raw
-            .iter()
-            .map(|(name, binds)| Section {
-                name: name.to_string(),
-                binds: binds
-                    .iter()
-                    .map(|(k, a)| Bind {
-                        keys: k.to_string(),
-                        action: a.to_string(),
-                    })
-                    .collect(),
-            })
-            .collect(),
-    }
+    Tab::from_raw("Glow", &["glow"], raw)
 }

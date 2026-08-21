@@ -95,3 +95,38 @@ fn dirs_hypr() -> std::path::PathBuf {
     let home = std::env::var("HOME").unwrap_or_else(|_| "/root".into());
     std::path::PathBuf::from(home).join(".config/hypr")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_bindd_with_description() {
+        let bind = parse_bind_line("bindd = SUPER, H, Keybindings, exec, scratchkeys").unwrap();
+        assert_eq!(bind.keys, "SUPER + H");
+        assert_eq!(bind.action, "Keybindings");
+    }
+
+    #[test]
+    fn skips_bindd_with_empty_description() {
+        assert!(parse_bind_line("bindd = SUPER, H, , exec, scratchkeys").is_none());
+    }
+
+    #[test]
+    fn parses_plain_bind_falling_back_to_dispatcher_and_args() {
+        let bind = parse_bind_line("bind = SUPER, Q, killactive").unwrap();
+        assert_eq!(bind.keys, "SUPER + Q");
+        assert_eq!(bind.action, "killactive");
+    }
+
+    #[test]
+    fn joins_multiple_mods() {
+        let bind = parse_bind_line("bind = SUPER SHIFT, B, exec, browser").unwrap();
+        assert_eq!(bind.keys, "SUPER + SHIFT + B");
+    }
+
+    #[test]
+    fn ignores_unrelated_directives() {
+        assert!(parse_bind_line("monitor = , preferred, auto, 1").is_none());
+    }
+}

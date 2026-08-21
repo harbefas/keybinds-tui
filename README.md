@@ -5,6 +5,7 @@ use — one tab per app, opens on the tab matching whatever's currently in
 focus, free-text search across all of them.
 
 ![Rust](https://img.shields.io/badge/rust-2021-orange)
+[![CI](https://github.com/harbefas/keybinds-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/harbefas/keybinds-tui/actions/workflows/ci.yml)
 
 ![screenshot](assets/screenshot.png)
 
@@ -19,7 +20,9 @@ that already knows what you were doing when you opened it.
 - **Tabs per app** — one per tool, switch with `←/→` or `Tab`/`Shift+Tab`
 - **Auto-focus detection** — guesses which app you were just in (via
   Hyprland window class + process tree) and opens directly on that tab
-- **Search** — `/` filters keys and actions across the active tab
+- **Search** — `/` filters keys and actions in the active tab; multiple
+  words match in any order, so "tab next" and "next tab" both find a row
+  whose action is "Next tab"
 - **Live sourcing where possible** — some tabs are parsed straight from the
   app's real config/state instead of a hand-maintained list (see below)
 - **Light/dark theme**, auto-switched by time of day
@@ -59,6 +62,7 @@ which app tab to open based on the window you were just in.
 |---|---|
 | `h`/`←` / `l`/`→` / `Tab` | Switch tabs |
 | `j`/`↓` / `k`/`↑` | Move selection |
+| `Ctrl+d` / `Ctrl+u` | Half page down / up |
 | `gg` / `G` | Jump to top / bottom of the list |
 | `/` | Search / filter |
 | `Esc` | Cancel search |
@@ -85,8 +89,34 @@ apps) works standalone with no extra setup.
 
 ## Adding an app
 
-Each source lives in `src/sources/<app>.rs` and returns a `model::Tab`. Add
-a live parser if the app has a config/dump you can read; otherwise a static
-table following the existing modules (e.g. `tridactyl.rs`) works fine. Wire
-it into the `tabs` vec in `main.rs` and, if it can run inside a generic
-terminal window, add its process name to `focus.rs`.
+**Without forking**, drop a `~/.config/kb/tabs.toml` and it's merged in at
+startup:
+
+```toml
+[[tab]]
+app = "MyApp"
+window_class = ["myapp"]
+
+[[tab.section]]
+name = "General"
+
+[[tab.section.bind]]
+keys = "Ctrl+X"
+action = "Do something"
+```
+
+**In the source tree**, each built-in lives in `src/sources/<app>.rs` and
+returns a `model::Tab`. Add a live parser if the app has a config/dump you
+can read; otherwise a static table following the existing modules (e.g.
+`tridactyl.rs`, built via `Tab::from_raw`) works fine. Wire it into the
+`tabs` vec in `main.rs` and, if it can run inside a generic terminal window,
+add its process name to `focus.rs`.
+
+## Development
+
+```sh
+cargo test    # unit tests for the Hyprland and Herdr config parsers
+cargo clippy --all-targets -- -D warnings
+```
+
+CI runs both on every push/PR.

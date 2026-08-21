@@ -37,10 +37,11 @@ fn draw_tabs(f: &mut Frame, area: Rect, tabs: &[Tab], active: usize, spinner: Op
     let titles: Vec<Line> = tabs
         .iter()
         .map(|tab| {
-            if tab.app == "Neovim" && spinner.is_some() && tab.sections.is_empty() {
-                Line::from(format!("{} {}", tab.app, spinner.unwrap()))
-            } else {
-                Line::from(tab.app.clone())
+            match spinner {
+                Some(frame) if tab.app == "Neovim" && tab.sections.is_empty() => {
+                    Line::from(format!("{} {}", tab.app, frame))
+                }
+                _ => Line::from(tab.app.clone()),
             }
         })
         .collect();
@@ -135,7 +136,9 @@ fn draw_footer(f: &mut Frame, area: Rect, search: &str, searching: bool, t: &The
         );
         f.render_widget(p, area);
     } else {
-        let hint = Paragraph::new(" h/l switch tab · j/k navigate · gg/G top/bottom · / search · q quit ")
+        let hint = Paragraph::new(
+            " h/l switch tab · j/k navigate · Ctrl+d/u half page · gg/G top/bottom · / search · q quit ",
+        )
             .style(Style::default().fg(t.text_4).bg(t.bg));
         f.render_widget(hint, area);
     }

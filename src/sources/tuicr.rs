@@ -1,4 +1,4 @@
-use crate::model::{Bind, Section, Tab};
+use crate::model::Tab;
 
 /// Static table from tuicr's documented vim-style keybindings (docs at
 /// tuicr.dev) — no local config file to source live from yet.
@@ -38,21 +38,5 @@ pub fn load() -> Tab {
         ),
     ];
 
-    Tab {
-        app: "Tuicr".into(),
-        window_class: &["tuicr"],
-        sections: raw
-            .iter()
-            .map(|(name, binds)| Section {
-                name: name.to_string(),
-                binds: binds
-                    .iter()
-                    .map(|(k, a)| Bind {
-                        keys: k.to_string(),
-                        action: a.to_string(),
-                    })
-                    .collect(),
-            })
-            .collect(),
-    }
+    Tab::from_raw("Tuicr", &["tuicr"], raw)
 }
