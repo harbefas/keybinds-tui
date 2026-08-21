@@ -1,7 +1,13 @@
 [package]
-name = "kb"
+name = "keybinds-tui"
 version = "0.1.0"
 edition = "2021"
+description = "A terminal UI for looking up keybindings across your tools, auto-opening on the tab matching the app you were just focused on"
+license = "MIT"
+repository = "https://github.com/harbefas/keybinds-tui"
+readme = "README.md"
+keywords = ["tui", "keybindings", "ratatui", "hyprland"]
+categories = ["command-line-utilities"]
 
 [[bin]]
 name = "kb"
