@@ -10,7 +10,7 @@ use anyhow::Result;
 use crossterm::event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers};
 use crossterm::execute;
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen};
-use model::Tab;
+use model::{SearchMode, Tab};
 use ratatui::backend::CrosstermBackend;
 use ratatui::widgets::TableState;
 use ratatui::Terminal;
@@ -26,6 +26,7 @@ struct App {
     active: usize,
     search: String,
     searching: bool,
+    search_mode: SearchMode,
     table: TableState,
     nvim_rx: Option<Receiver<Tab>>,
     nvim_idx: usize,
@@ -76,6 +77,7 @@ fn main() -> Result<()> {
         active,
         search: String::new(),
         searching: false,
+        search_mode: SearchMode::Fuzzy,
         table,
         nvim_rx,
         nvim_idx,
@@ -109,7 +111,7 @@ fn filter_text(app: &App) -> &str {
 }
 
 fn row_count(app: &App) -> usize {
-    app.tabs[app.active].filtered(filter_text(app)).len()
+    app.tabs[app.active].filtered_by(app.search_mode, filter_text(app)).len()
 }
 
 /// While searching, `@token` at the start jumps to the first tab whose name
@@ -188,8 +190,11 @@ fn run<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut App) 
                 f,
                 app.tabs.as_slice(),
                 app.active,
-                &app.search,
-                app.searching,
+                &model::SearchState {
+                    text: &app.search,
+                    active: app.searching,
+                    mode: app.search_mode,
+                },
                 &mut app.table,
                 spinner,
             )
@@ -257,6 +262,12 @@ fn run<B: ratatui::backend::Backend>(terminal: &mut Terminal<B>, app: &mut App) 
                 KeyCode::Char('G') => jump_to(app, row_count(app).saturating_sub(1)),
                 KeyCode::Char('/') => {
                     app.searching = true;
+                    app.search_mode = SearchMode::Fuzzy;
+                    app.search.clear();
+                }
+                KeyCode::Char('w') => {
+                    app.searching = true;
+                    app.search_mode = SearchMode::WhichKey;
                     app.search.clear();
                 }
                 _ => {}

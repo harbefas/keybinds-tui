@@ -82,7 +82,8 @@ which app tab to open based on the window you were just in.
 | `j`/`↓` / `k`/`↑` | Move selection |
 | `Ctrl+d` / `Ctrl+u` | Half page down / up |
 | `gg` / `G` | Jump to top / bottom of the list |
-| `/` | Search / filter |
+| `/` | Search / filter (fuzzy, matches section/keys/action) |
+| `w` | Which-key: type the chord itself, narrows live by prefix (e.g. `g` then `g` finds `gg`) |
 | `Esc` | Cancel search |
 | `q` / `Esc` (outside search) | Quit |
 

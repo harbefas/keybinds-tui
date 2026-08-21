@@ -12,6 +12,23 @@ pub struct Section {
     pub binds: Vec<Bind>,
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum SearchMode {
+    /// `/` — multi-word substring/fuzzy match across section, keys, action.
+    Fuzzy,
+    /// `w` — which-key style: typed chars must prefix-match the actual key
+    /// chord, narrowing live as you "press" it.
+    WhichKey,
+}
+
+/// The live state of the `/` / `w` input line, threaded from `main` into
+/// `ui::draw` as one value instead of three separate parameters.
+pub struct SearchState<'a> {
+    pub text: &'a str,
+    pub active: bool,
+    pub mode: SearchMode,
+}
+
 #[derive(Clone)]
 pub struct Tab {
     pub app: String,
@@ -101,6 +118,32 @@ impl Tab {
         }
         scored.into_iter().map(|(_, row)| row).collect()
     }
+
+    /// Which-key narrowing: keeps rows where some "/"-separated alternative
+    /// of `keys` starts with `buffer` once whitespace is stripped from both
+    /// (so "g g" matches typing "gg", "SUPER + Q" matches "SUPER+Q").
+    pub fn whichkey_filtered(&self, buffer: &str) -> Vec<(&str, &Bind)> {
+        if buffer.is_empty() {
+            return self.flat();
+        }
+        self.flat()
+            .into_iter()
+            .filter(|(_, bind)| normalized_alts(&bind.keys).iter().any(|alt| alt.starts_with(buffer)))
+            .collect()
+    }
+
+    pub fn filtered_by(&self, mode: SearchMode, search: &str) -> Vec<(&str, &Bind)> {
+        match mode {
+            SearchMode::Fuzzy => self.filtered(search),
+            SearchMode::WhichKey => self.whichkey_filtered(search),
+        }
+    }
+}
+
+fn normalized_alts(keys: &str) -> Vec<String> {
+    keys.split('/')
+        .map(|alt| alt.chars().filter(|c| !c.is_whitespace()).collect())
+        .collect()
 }
 
 /// True if every char of `needle` appears in `haystack` in order (not
@@ -157,6 +200,26 @@ mod tests {
         let t = tab();
         // "nxt" is a subsequence of "next" but not a substring.
         assert_eq!(t.filtered("nxt").len(), 1);
+    }
+
+    #[test]
+    fn whichkey_narrows_by_prefix_ignoring_whitespace() {
+        let t = Tab::from_raw(
+            "Yazi",
+            &[],
+            &[],
+            &[("Nav", &[("g g", "Top"), ("G", "Bottom"), ("gt", "Next tab")])],
+        );
+        assert_eq!(t.whichkey_filtered("g").len(), 2); // "gg", "gt" — not "G"
+        assert_eq!(t.whichkey_filtered("gg").len(), 1);
+        assert_eq!(t.whichkey_filtered("gg")[0].1.action, "Top");
+        assert_eq!(t.whichkey_filtered("x").len(), 0);
+    }
+
+    #[test]
+    fn whichkey_matches_either_side_of_a_slash_alternative() {
+        let t = Tab::from_raw("Yazi", &[], &[], &[("Nav", &[("Ctrl+u / Ctrl+d", "Half page")])]);
+        assert_eq!(t.whichkey_filtered("Ctrl+d").len(), 1);
     }
 
     #[test]

@@ -1,4 +1,4 @@
-use crate::model::Tab;
+use crate::model::{SearchMode, SearchState, Tab};
 use crate::theme::{self, Theme};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Modifier, Style};
@@ -10,8 +10,7 @@ pub fn draw(
     f: &mut Frame,
     tabs: &[Tab],
     active: usize,
-    search: &str,
-    searching: bool,
+    search: &SearchState,
     table_state: &mut TableState,
     spinner: Option<&str>,
 ) {
@@ -24,13 +23,13 @@ pub fn draw(
         .constraints([
             Constraint::Length(3),
             Constraint::Min(0),
-            Constraint::Length(if searching || !search.is_empty() { 3 } else { 1 }),
+            Constraint::Length(if search.active || !search.text.is_empty() { 3 } else { 1 }),
         ])
         .split(area);
 
     draw_tabs(f, chunks[0], tabs, active, spinner, t);
     draw_binds(f, chunks[1], &tabs[active], search, table_state, spinner, t);
-    draw_footer(f, chunks[2], search, searching, t);
+    draw_footer(f, chunks[2], search, t);
 }
 
 fn draw_tabs(f: &mut Frame, area: Rect, tabs: &[Tab], active: usize, spinner: Option<&str>, t: &Theme) {
@@ -63,7 +62,7 @@ fn draw_binds(
     f: &mut Frame,
     area: Rect,
     tab: &Tab,
-    search: &str,
+    search: &SearchState,
     table_state: &mut TableState,
     spinner: Option<&str>,
     t: &Theme,
@@ -84,7 +83,7 @@ fn draw_binds(
         return;
     }
 
-    let filtered = tab.filtered(crate::model::split_at_tab(search).1);
+    let filtered = tab.filtered_by(search.mode, crate::model::split_at_tab(search.text).1);
     let rows: Vec<Row> = filtered
         .iter()
         .map(|(section, bind)| {
@@ -124,10 +123,15 @@ fn draw_binds(
     f.render_stateful_widget(table, area, table_state);
 }
 
-fn draw_footer(f: &mut Frame, area: Rect, search: &str, searching: bool, t: &Theme) {
-    if searching || !search.is_empty() {
-        let label = if searching { "search> " } else { "filter: " };
-        let text = format!("{label}{search}");
+fn draw_footer(f: &mut Frame, area: Rect, search: &SearchState, t: &Theme) {
+    if search.active || !search.text.is_empty() {
+        let label = match (search.mode, search.active) {
+            (SearchMode::Fuzzy, true) => "search> ",
+            (SearchMode::Fuzzy, false) => "filter: ",
+            (SearchMode::WhichKey, true) => "which-key> ",
+            (SearchMode::WhichKey, false) => "which-key: ",
+        };
+        let text = format!("{label}{}", search.text);
         let p = Paragraph::new(text).style(Style::default().fg(t.accent_text).bg(t.bg)).block(
             Block::default()
                 .borders(Borders::ALL)
@@ -137,7 +141,7 @@ fn draw_footer(f: &mut Frame, area: Rect, search: &str, searching: bool, t: &The
         f.render_widget(p, area);
     } else {
         let hint = Paragraph::new(
-            " h/l switch tab · j/k navigate · Ctrl+d/u half page · gg/G top/bottom · / search · q quit ",
+            " h/l switch tab · j/k navigate · Ctrl+d/u half page · gg/G top/bottom · / search · w which-key · q quit ",
         )
             .style(Style::default().fg(t.text_4).bg(t.bg));
         f.render_widget(hint, area);
