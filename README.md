@@ -6,6 +6,8 @@ focus, free-text search across all of them.
 
 ![Rust](https://img.shields.io/badge/rust-2021-orange)
 
+![screenshot](assets/screenshot.png)
+
 ## Why
 
 Keybindings live scattered across config files, plugin docs, and muscle
