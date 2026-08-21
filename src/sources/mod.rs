@@ -1,0 +1,9 @@
+pub mod glow;
+pub mod herdr;
+pub mod hypr;
+pub mod lazygit;
+pub mod nvim;
+pub mod spotify_player;
+pub mod tridactyl;
+pub mod tuicr;
+pub mod yazi;
